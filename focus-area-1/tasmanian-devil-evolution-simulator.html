@@ -1,0 +1,363 @@
+
+<style>
+  h2.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  *{box-sizing:border-box}
+  body,div{font-family:var(--font-sans,sans-serif)}
+  .sim-wrap{padding:1rem 0;max-width:700px}
+  .sim-title{font-size:15px;font-weight:500;color:var(--color-text-primary);margin:0 0 4px}
+  .sim-sub{font-size:12px;color:var(--color-text-secondary);margin:0 0 12px}
+  .main-row{display:grid;grid-template-columns:1fr 200px;gap:12px;margin-bottom:10px}
+  .pop-area{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:10px;position:relative}
+  .pop-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+  .individual{width:100%;aspect-ratio:1;border-radius:6px;border:0.5px solid rgba(0,0,0,0.12);position:relative;display:flex;align-items:center;justify-content:center;transition:opacity 0.3s;font-size:16px;cursor:default;overflow:hidden}
+  .individual.mutating::after{content:'✦';position:absolute;top:1px;right:2px;font-size:9px;color:#F9CB42;animation:sparkle 0.6s ease-out forwards}
+  .individual.dying{animation:die 0.5s ease-out forwards}
+  .individual.born{animation:born 0.4s ease-in forwards}
+  @keyframes sparkle{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(2) translateY(-4px)}}
+  @keyframes die{0%{opacity:1}50%{opacity:0.3;transform:scale(0.8)}100%{opacity:0;transform:scale(0)}}
+  @keyframes born{0%{opacity:0;transform:scale(0)}100%{opacity:1;transform:scale(1)}}
+  .controls{display:flex;flex-direction:column;gap:8px}
+  .ctrl-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:10px}
+  .ctrl-label{font-size:11px;font-weight:500;color:var(--color-text-secondary);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+  .env-btn{width:100%;padding:5px 8px;margin-bottom:4px;font-size:11px;border:0.5px solid var(--color-border-secondary);border-radius:6px;background:var(--color-background-secondary);color:var(--color-text-secondary);cursor:pointer;text-align:left;transition:all 0.15s}
+  .env-btn.active{background:var(--color-background-info);border-color:var(--color-border-info);color:var(--color-text-info);font-weight:500}
+  .action-btn{width:100%;padding:6px 8px;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:6px;background:transparent;color:var(--color-text-primary);cursor:pointer;margin-bottom:4px;transition:all 0.15s}
+  .action-btn:hover{background:var(--color-background-secondary)}
+  .action-btn:disabled{opacity:0.4;cursor:default}
+  .btn-danger{border-color:var(--color-border-danger);color:var(--color-text-danger)}
+  .btn-danger:hover{background:var(--color-background-danger)}
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+  .stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:8px 6px;text-align:center}
+  .stat-val{font-size:16px;font-weight:500;color:var(--color-text-primary)}
+  .stat-lbl{font-size:10px;color:var(--color-text-secondary);margin-top:2px}
+  .mutation-highlight{background:var(--color-background-warning);border:0.5px solid var(--color-border-warning)}
+  .mutation-highlight .stat-val{color:var(--color-text-warning)}
+  .insight-box{border-left:3px solid;border-radius:0 var(--border-radius-md) var(--border-radius-md) 0;padding:8px 12px;margin-bottom:8px;font-size:12px;line-height:1.5}
+  .insight-mutation{border-color:#EF9F27;background:rgba(239,159,39,0.08)}
+  .insight-selection{border-color:#378ADD;background:rgba(55,138,221,0.08)}
+  .insight-idle{border-color:var(--color-border-tertiary);background:var(--color-background-secondary)}
+  .insight-title{font-weight:500;font-size:11px;margin-bottom:2px}
+  .chart-wrap{background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;margin-bottom:8px}
+  .chart-lbl{font-size:10px;color:var(--color-text-secondary);margin-bottom:4px}
+  canvas#diversity-chart{width:100%;height:60px;display:block}
+  .legend-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--color-text-secondary)}
+  .legend-dot{width:10px;height:10px;border-radius:50%}
+  .phase-label{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:10px;font-weight:500;color:var(--color-text-secondary);pointer-events:none}
+  .speed-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--color-text-secondary)}
+  .speed-row input{flex:1}
+</style>
+
+<div class="sim-wrap">
+  <h2 class="sr-only">Tasmanian Devil Evolution Simulator — demonstrates that mutations occur randomly at a constant rate while the environment acts as a filter on existing variation</h2>
+  <p class="sim-title">Tasmanian Devil Evolution Simulator</p>
+  <p class="sim-sub">Each coloured icon = one devil. Colour = genetic variant. Watch what stays constant vs what changes.</p>
+
+  <div class="main-row">
+    <div class="pop-area">
+      <div class="pop-grid" id="pop-grid"></div>
+      <div class="phase-label" id="phase-label">Ready — press Run</div>
+    </div>
+    <div class="controls">
+      <div class="ctrl-card">
+        <div class="ctrl-label">Environment</div>
+        <button class="env-btn active" id="env-none" onclick="setEnv('none')">🌿 Stable forest<br><span style="font-size:10px;opacity:.7">No selection pressure</span></button>
+        <button class="env-btn" id="env-dftd" onclick="setEnv('dftd')">🦠 DFTD outbreak<br><span style="font-size:10px;opacity:.7">Disease selects survivors</span></button>
+        <button class="env-btn" id="env-multi" onclick="setEnv('multi')">⚡ Multiple pressures<br><span style="font-size:10px;opacity:.7">Strong selection</span></button>
+      </div>
+      <div class="ctrl-card">
+        <div class="ctrl-label">Controls</div>
+        <button class="action-btn" id="btn-run" onclick="toggleRun()">▶ Run</button>
+        <button class="action-btn" id="btn-step" onclick="stepGen()">⏭ Step generation</button>
+        <button class="action-btn btn-danger" onclick="triggerBottleneck()">💀 Population crash</button>
+        <button class="action-btn" onclick="resetSim()">↺ Reset</button>
+        <div class="speed-row" style="margin-top:6px">
+          <span>Speed</span>
+          <input type="range" id="speed-slider" min="200" max="2000" value="1000" step="100" oninput="updateSpeed(this.value)" style="flex:1">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="stat-gen">0</div><div class="stat-lbl">Generation</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-pop">36</div><div class="stat-lbl">Population</div></div>
+    <div class="stat-card" id="div-card"><div class="stat-val" id="stat-div">100%</div><div class="stat-lbl">Diversity index</div></div>
+    <div class="stat-card mutation-highlight"><div class="stat-val" id="stat-mut">—</div><div class="stat-lbl">Mutations/gen ✦ (constant!)</div></div>
+  </div>
+
+  <div class="insight-box insight-idle" id="insight-box">
+    <div class="insight-title" id="insight-title">How to use this simulator</div>
+    <div id="insight-text">Press <strong>Run</strong> or <strong>Step generation</strong> to begin. Change the environment anytime — then watch whether the mutation counter changes. It won't.</div>
+  </div>
+
+  <div class="chart-wrap">
+    <div class="chart-lbl">Genetic diversity over time (100% = maximum variation)</div>
+    <canvas id="diversity-chart" height="60"></canvas>
+  </div>
+
+  <div class="legend-row">
+    <div class="legend-item"><div class="legend-dot" style="background:#EF9F27"></div>New mutation ✦</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#E24B4A"></div>Eliminated (environment filter)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#639922"></div>New offspring (reproduction)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#888"></div>Colour = genetic variant</div>
+  </div>
+</div>
+
+<script>
+const ALLELES = ['#C04848','#C07048','#B09030','#60A040','#30A080','#2888C0','#5858C0','#9048C0','#C048A0','#A03038'];
+const ALLELE_NAMES = ['R1','R2','A1','G1','T1','B1','B2','P1','P2','C1'];
+const POP_SIZE = 36;
+const MUTATIONS_PER_GEN = 3;
+
+let population = [];
+let environment = 'none';
+let generation = 0;
+let running = false;
+let runTimer = null;
+let speed = 1000;
+let diversityHistory = [];
+let phase = 'idle';
+let steppingInProgress = false;
+
+function makeIndividual() {
+  return { allele: Math.floor(Math.random() * ALLELES.length), alive: true, mutating: false };
+}
+
+function initPop() {
+  population = Array.from({length: POP_SIZE}, () => makeIndividual());
+}
+
+function getDiversityIndex() {
+  const alive = population.filter(d => d.alive);
+  if (!alive.length) return 0;
+  const unique = new Set(alive.map(d => d.allele)).size;
+  return Math.round((unique / ALLELES.length) * 100);
+}
+
+function renderGrid() {
+  const grid = document.getElementById('pop-grid');
+  grid.innerHTML = '';
+  population.forEach((ind, i) => {
+    const cell = document.createElement('div');
+    cell.className = 'individual';
+    cell.id = `ind-${i}`;
+    if (!ind.alive) { cell.style.opacity = '0'; cell.style.pointerEvents = 'none'; grid.appendChild(cell); return; }
+    cell.style.background = ALLELES[ind.allele];
+    cell.style.boxShadow = `inset 0 0 0 2px rgba(0,0,0,0.15)`;
+    cell.textContent = '🐾';
+    cell.style.fontSize = '14px';
+    cell.title = `Genetic variant: ${ALLELE_NAMES[ind.allele]}`;
+    if (ind.mutating) cell.classList.add('mutating');
+    grid.appendChild(cell);
+  });
+}
+
+function updateStats(muts) {
+  const alive = population.filter(d => d.alive).length;
+  const div = getDiversityIndex();
+  document.getElementById('stat-gen').textContent = generation;
+  document.getElementById('stat-pop').textContent = alive;
+  document.getElementById('stat-div').textContent = div + '%';
+  if (muts !== undefined) document.getElementById('stat-mut').textContent = muts;
+  const dc = document.getElementById('div-card');
+  dc.style.background = div > 60 ? '' : div > 30 ? 'rgba(239,159,39,0.15)' : 'rgba(226,75,74,0.12)';
+}
+
+function setInsight(phase, title, text) {
+  const box = document.getElementById('insight-box');
+  box.className = 'insight-box ' + (phase === 'mutation' ? 'insight-mutation' : phase === 'selection' ? 'insight-selection' : 'insight-idle');
+  document.getElementById('insight-title').textContent = title;
+  document.getElementById('insight-text').innerHTML = text;
+}
+
+function drawChart() {
+  const canvas = document.getElementById('diversity-chart');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 400;
+  const H = 60;
+  canvas.width = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.clearRect(0, 0, W, H);
+  if (diversityHistory.length < 2) return;
+  const max = Math.max(...diversityHistory, 100);
+  const pts = diversityHistory.map((v, i) => [
+    (i / (diversityHistory.length - 1)) * W,
+    H - 4 - ((v / max) * (H - 8))
+  ]);
+  ctx.strokeStyle = '#378ADD';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  pts.forEach((p, i) => i === 0 ? ctx.moveTo(...p) : ctx.lineTo(...p));
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(55,138,221,0.12)';
+  ctx.beginPath();
+  pts.forEach((p, i) => i === 0 ? ctx.moveTo(...p) : ctx.lineTo(...p));
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+  ctx.fill();
+  // Grid line at 50%
+  ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+  ctx.lineWidth = 0.5;
+  ctx.setLineDash([3,3]);
+  const y50 = H - 4 - (0.5 * (H - 8));
+  ctx.beginPath(); ctx.moveTo(0, y50); ctx.lineTo(W, y50); ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function setPhaseLabel(text) {
+  document.getElementById('phase-label').textContent = text;
+}
+
+async function stepGen() {
+  if (steppingInProgress) return;
+  steppingInProgress = true;
+  document.getElementById('btn-step').disabled = true;
+
+  const alive = population.filter(d => d.alive);
+  if (!alive.length) { steppingInProgress = false; return; }
+
+  // PHASE 1: MUTATIONS (random, constant)
+  setPhaseLabel('Phase 1 of 3: Random mutations occurring...');
+  setInsight('mutation',
+    '✦ Mutation phase — random variation being created',
+    `<strong>${MUTATIONS_PER_GEN} random mutations</strong> occur this generation — the same number regardless of whether the environment is stable or stressful. Need does not drive mutation. This happens constantly in all living populations.`
+  );
+
+  const mutIndices = [];
+  const aliveIdx = population.map((d,i) => d.alive ? i : -1).filter(i => i >= 0);
+  for (let m = 0; m < MUTATIONS_PER_GEN; m++) {
+    const ri = aliveIdx[Math.floor(Math.random() * aliveIdx.length)];
+    population[ri].allele = Math.floor(Math.random() * ALLELES.length);
+    population[ri].mutating = true;
+    mutIndices.push(ri);
+  }
+  renderGrid();
+  updateStats(MUTATIONS_PER_GEN);
+  await sleep(800);
+  mutIndices.forEach(i => { population[i].mutating = false; });
+
+  // PHASE 2: SELECTION (environment filters existing variation)
+  setPhaseLabel('Phase 2 of 3: Environment filtering...');
+  const envLabels = { none: 'Stable forest — no selection pressure', dftd: 'DFTD disease — selects for immune variants', multi: 'Multiple pressures — strong selection' };
+  const survivalThreshold = environment === 'none' ? 1.0 : environment === 'dftd' ? 0.65 : 0.35;
+  const fitRange = environment === 'dftd' ? [3,7] : environment === 'multi' ? [2,5] : [0,9];
+
+  let eliminated = 0;
+  population.forEach((ind, i) => {
+    if (!ind.alive) return;
+    if (environment === 'none') return;
+    const fit = ind.allele >= fitRange[0] && ind.allele <= fitRange[1];
+    const dies = !fit && Math.random() > (environment === 'dftd' ? 0.3 : 0.15);
+    if (dies) { ind.alive = false; eliminated++; }
+  });
+
+  renderGrid();
+
+  const selText = environment === 'none'
+    ? `<strong>No selection pressure.</strong> All individuals survive — environment is not filtering. Yet mutations still occurred! Diversity accumulates over time in stable environments.`
+    : `<strong>${eliminated} individual${eliminated!==1?'s':''} eliminated</strong> because their existing variants didn't fit the environment. <em>The environment did not create new traits</em> — it only filtered pre-existing variation. Mutation rate: still ${MUTATIONS_PER_GEN}/gen.`;
+
+  setInsight('selection', '🔬 Selection phase — environment acts as a filter', selText);
+  setPhaseLabel('Phase 2 of 3: Selection complete');
+  await sleep(900);
+
+  // PHASE 3: REPRODUCTION
+  setPhaseLabel('Phase 3 of 3: Survivors reproduce...');
+  const survivors = population.filter(d => d.alive);
+  if (!survivors.length) { steppingInProgress = false; return; }
+
+  const dead = population.map((d,i) => !d.alive ? i : -1).filter(i => i >= 0);
+  dead.forEach(i => {
+    const parent = survivors[Math.floor(Math.random() * survivors.length)];
+    population[i] = { allele: parent.allele, alive: true, mutating: false };
+  });
+
+  generation++;
+  diversityHistory.push(getDiversityIndex());
+  renderGrid();
+  updateStats(MUTATIONS_PER_GEN);
+  drawChart();
+
+  const div = getDiversityIndex();
+  const envName = { none: 'stable forest', dftd: 'disease outbreak', multi: 'multiple pressures' }[environment];
+  setInsight('idle', `Generation ${generation} complete`,
+    `Diversity: <strong>${div}%</strong> | Environment: <strong>${envName}</strong> | Mutations this generation: <strong>${MUTATIONS_PER_GEN}</strong> (always the same). ${div < 40 ? ' Low diversity is accumulating — from selection and/or history, not from "no need to adapt".' : ''}`
+  );
+  setPhaseLabel(`Gen ${generation} — ${survivors.length + dead.length} individuals`);
+  steppingInProgress = false;
+  document.getElementById('btn-step').disabled = false;
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function toggleRun() {
+  running = !running;
+  document.getElementById('btn-run').textContent = running ? '⏸ Pause' : '▶ Run';
+  if (running) scheduleNext();
+  else { clearTimeout(runTimer); steppingInProgress = false; }
+}
+
+function scheduleNext() {
+  if (!running) return;
+  runTimer = setTimeout(async () => {
+    await stepGen();
+    if (running) scheduleNext();
+  }, speed);
+}
+
+function updateSpeed(v) { speed = parseInt(v); }
+
+function setEnv(env) {
+  environment = env;
+  ['none','dftd','multi'].forEach(e => {
+    document.getElementById(`env-${e}`).classList.toggle('active', e === env);
+  });
+  if (env === 'none') {
+    setInsight('mutation', '🌿 Stable forest — watching mutation without selection',
+      `In this environment there is <strong>no selection pressure</strong>. All individuals survive. Watch: mutations still occur at exactly the same rate. Diversity will <em>increase</em> over time — not decrease — proving that stability alone does not cause low diversity.`);
+  } else if (env === 'dftd') {
+    setInsight('selection', '🦠 DFTD disease — selection pressure active',
+      `Only individuals with immune-related variants (alleles G1–B2) are likely to survive. Watch mutation rate carefully — it stays at <strong>${MUTATIONS_PER_GEN}/gen</strong> even though the environment changed. The environment is a <em>filter</em>, not a creator of new variation.`);
+  } else {
+    setInsight('selection', '⚡ Multiple pressures — strong selection active',
+      `Harsh conditions eliminate most variants quickly. Note: mutation rate unchanged. Diversity drops because of <em>filtering</em>, not because variation stopped being created. This mirrors what a population bottleneck does.`);
+  }
+}
+
+function triggerBottleneck() {
+  if (steppingInProgress) return;
+  let count = 0;
+  population.forEach(ind => {
+    if (ind.alive && Math.random() < 0.82) { ind.alive = false; count++; }
+  });
+  renderGrid();
+  updateStats();
+  diversityHistory.push(getDiversityIndex());
+  drawChart();
+  setInsight('selection', '💀 Population crash (bottleneck event)',
+    `<strong>${count} individuals eliminated randomly</strong> — like a historic disease or drought wiping out a population. Diversity collapses because only a tiny random sample survives. This is the <em>real reason</em> Tasmanian devils have low genetic diversity — not because their environment was too stable to "need" adaptation.`);
+}
+
+function resetSim() {
+  running = false;
+  clearTimeout(runTimer);
+  steppingInProgress = false;
+  generation = 0;
+  diversityHistory = [];
+  document.getElementById('btn-run').textContent = '▶ Run';
+  document.getElementById('stat-mut').textContent = '—';
+  initPop();
+  renderGrid();
+  updateStats();
+  drawChart();
+  setInsight('idle', 'Simulation reset', 'Press <strong>Run</strong> or <strong>Step generation</strong> to begin. Try the stable forest first — watch diversity go up, not down, as mutations accumulate without selection pressure.');
+  setPhaseLabel('Ready — press Run');
+}
+
+initPop();
+renderGrid();
+updateStats();
+drawChart();
+setInsight('idle', 'How to use this simulator', 'Press <strong>Run</strong> or <strong>Step generation</strong> to begin. Change the environment anytime — then watch whether the mutation counter changes. It won\'t.');
+</script>
