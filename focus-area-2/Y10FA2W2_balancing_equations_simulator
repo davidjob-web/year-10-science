@@ -1,0 +1,393 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.sim-wrap{padding:1rem 0}
+.rule-banner{background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 14px;font-size:13px;color:var(--color-text-secondary);margin-bottom:1.25rem;line-height:1.5}
+.rule-banner strong{color:var(--color-text-primary);font-weight:500}
+.reaction-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem}
+.rxn-btn{font-size:13px;padding:6px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
+.rxn-btn.active{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
+.eq-display{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;padding:14px;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary)}
+.species-ctrl{display:flex;flex-direction:column;align-items:center;gap:4px}
+.coeff-up,.coeff-dn{width:32px;height:24px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center}
+.coeff-up:disabled,.coeff-dn:disabled{opacity:0.3;cursor:default}
+.coeff-num{font-size:26px;font-weight:500;color:var(--color-text-primary);min-width:28px;text-align:center;line-height:1}
+.coeff-num.coeff-one{color:var(--color-text-tertiary)}
+.formula-display{font-size:20px;color:var(--color-text-primary);font-weight:500;line-height:1;text-align:center}
+.formula-display sup{font-size:12px;color:var(--color-text-secondary)}
+.formula-display .subscript{font-size:13px;vertical-align:sub;color:var(--color-text-secondary)}
+.arrow{font-size:22px;color:var(--color-text-secondary);padding:0 4px;align-self:center;margin-top:8px}
+.plus{font-size:20px;color:var(--color-text-secondary);align-self:center;margin-top:8px}
+.coeff-label{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em}
+.viz-area{display:flex;align-items:flex-start;gap:16px;margin-bottom:1.25rem;flex-wrap:wrap}
+.viz-side{flex:1;min-width:200px}
+.viz-label{font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.molecule-canvas{width:100%;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
+.viz-arrow{align-self:center;font-size:20px;color:var(--color-text-tertiary);padding-top:28px}
+.count-table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:1.25rem}
+.count-table th{text-align:left;font-weight:500;font-size:12px;color:var(--color-text-secondary);padding:6px 10px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.count-table td{padding:7px 10px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.count-table .el-name{color:var(--color-text-primary);font-weight:500}
+.count-val{font-weight:500;text-align:center}
+.match-yes{color:#27500A;background:#EAF3DE;border-radius:4px;padding:2px 8px}
+.match-no{color:#791F1F;background:#FCEBEB;border-radius:4px;padding:2px 8px}
+.status-banner{border-radius:var(--border-radius-md);padding:12px 16px;font-size:14px;margin-bottom:1rem;border:0.5px solid}
+.status-balanced{background:#EAF3DE;border-color:#97C459;color:#27500A}
+.status-not-lowest{background:#FAEEDA;border-color:#EF9F27;color:#633806}
+.status-unbalanced{background:#FCEBEB;border-color:#F09595;color:#791F1F}
+.status-start{background:var(--color-background-secondary);border-color:var(--color-border-tertiary);color:var(--color-text-secondary)}
+.reset-btn{font-size:13px;padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;margin-left:auto;display:block}
+</style>
+
+<div class="sim-wrap">
+<h2 class="sr-only">Balancing chemical equations simulator — adjust coefficients and see atom counts update in real time</h2>
+
+<div class="rule-banner">
+  <strong>Remember:</strong> Change the <strong>coefficient</strong> (the big number in front) — never the subscript (the small number inside the formula). Adding a coefficient means adding whole molecules, not changing what the molecule is.
+</div>
+
+<div class="reaction-selector" id="rxnSelector"></div>
+
+<div class="eq-display" id="eqDisplay"></div>
+
+<div class="viz-area" id="vizArea"></div>
+
+<table class="count-table" id="countTable">
+  <thead><tr><th>Element</th><th style="text-align:center">Left side</th><th style="text-align:center">Right side</th><th style="text-align:center">Match?</th></tr></thead>
+  <tbody id="countBody"></tbody>
+</table>
+
+<div class="status-banner status-start" id="statusBanner">Adjust the coefficients above to begin.</div>
+
+<button class="reset-btn" id="resetBtn">Reset to 1</button>
+</div>
+
+<script>
+const REACTIONS = [
+  {
+    label: 'H\u2082 + O\u2082 \u2192 H\u2082O',
+    shortLabel: 'Hydrogen + oxygen',
+    reactants: [
+      { formula: 'H\u2082', atoms: {H:2}, color: '#378ADD', label: 'H\u2082' },
+      { formula: 'O\u2082', atoms: {O:2}, color: '#E24B4A', label: 'O\u2082' },
+    ],
+    products: [
+      { formula: 'H\u2082O', atoms: {H:2,O:1}, color: '#1D9E75', label: 'H\u2082O' },
+    ],
+    balanced: [2,1,2],
+  },
+  {
+    label: '2Mg + O\u2082 \u2192 MgO',
+    shortLabel: 'Magnesium + oxygen',
+    reactants: [
+      { formula: 'Mg', atoms: {Mg:1}, color: '#888780', label: 'Mg' },
+      { formula: 'O\u2082', atoms: {O:2}, color: '#E24B4A', label: 'O\u2082' },
+    ],
+    products: [
+      { formula: 'MgO', atoms: {Mg:1,O:1}, color: '#BA7517', label: 'MgO' },
+    ],
+    balanced: [2,1,2],
+  },
+  {
+    label: 'Fe + S \u2192 FeS',
+    shortLabel: 'Iron + sulfur',
+    reactants: [
+      { formula: 'Fe', atoms: {Fe:1}, color: '#5F5E5A', label: 'Fe' },
+      { formula: 'S', atoms: {S:1}, color: '#EF9F27', label: 'S' },
+    ],
+    products: [
+      { formula: 'FeS', atoms: {Fe:1,S:1}, color: '#534AB7', label: 'FeS' },
+    ],
+    balanced: [1,1,1],
+  },
+  {
+    label: 'CuCO\u2083 \u2192 CuO + CO\u2082',
+    shortLabel: 'Copper carbonate',
+    reactants: [
+      { formula: 'CuCO\u2083', atoms: {Cu:1,C:1,O:3}, color: '#D85A30', label: 'CuCO\u2083' },
+    ],
+    products: [
+      { formula: 'CuO', atoms: {Cu:1,O:1}, color: '#D4537E', label: 'CuO' },
+      { formula: 'CO\u2082', atoms: {C:1,O:2}, color: '#888780', label: 'CO\u2082' },
+    ],
+    balanced: [1,1,1],
+  },
+  {
+    label: 'Ag\u2082O \u2192 Ag + O\u2082',
+    shortLabel: 'Silver oxide',
+    reactants: [
+      { formula: 'Ag\u2082O', atoms: {Ag:2,O:1}, color: '#888780', label: 'Ag\u2082O' },
+    ],
+    products: [
+      { formula: 'Ag', atoms: {Ag:1}, color: '#B4B2A9', label: 'Ag' },
+      { formula: 'O\u2082', atoms: {O:2}, color: '#E24B4A', label: 'O\u2082' },
+    ],
+    balanced: [2,4,1],
+  },
+];
+
+let currentRxn = 0;
+let coeffs = [];
+
+function gcd(a,b){ return b===0?a:gcd(b,a%b); }
+function gcdArr(arr){ return arr.reduce((a,b)=>gcd(a,b)); }
+
+function getSpecies(rxn){ return [...rxn.reactants, ...rxn.products]; }
+
+function countAtoms(rxn, coeffArr){
+  const leftAtoms = {}, rightAtoms = {};
+  rxn.reactants.forEach((sp,i)=>{
+    Object.entries(sp.atoms).forEach(([el,n])=>{
+      leftAtoms[el]=(leftAtoms[el]||0)+n*coeffArr[i];
+    });
+  });
+  rxn.products.forEach((sp,i)=>{
+    Object.entries(sp.atoms).forEach(([el,n])=>{
+      const ci = rxn.reactants.length+i;
+      rightAtoms[el]=(rightAtoms[el]||0)+n*coeffArr[ci];
+    });
+  });
+  return {leftAtoms,rightAtoms};
+}
+
+function isBalanced(leftAtoms,rightAtoms){
+  const allEls = new Set([...Object.keys(leftAtoms),...Object.keys(rightAtoms)]);
+  for(const el of allEls){
+    if((leftAtoms[el]||0)!==(rightAtoms[el]||0)) return false;
+  }
+  return true;
+}
+
+function renderEq(rxn, coeffArr){
+  const el = document.getElementById('eqDisplay');
+  el.innerHTML='';
+  const species = getSpecies(rxn);
+  const totalReactants = rxn.reactants.length;
+
+  species.forEach((sp,i)=>{
+    if(i===totalReactants){
+      const arrow=document.createElement('div');
+      arrow.className='arrow'; arrow.textContent='\u2192';
+      el.appendChild(arrow);
+    } else if(i>0 && i!==totalReactants){
+      const plus=document.createElement('div');
+      plus.className='plus'; plus.textContent='+';
+      el.appendChild(plus);
+    } else if(i===0 && totalReactants===0){
+    }
+    if(i>totalReactants){
+      const plus=document.createElement('div');
+      plus.className='plus'; plus.textContent='+';
+      el.appendChild(plus);
+    }
+
+    const ctrl=document.createElement('div');
+    ctrl.className='species-ctrl';
+
+    const upBtn=document.createElement('button');
+    upBtn.className='coeff-up'; upBtn.textContent='\u25b2';
+    upBtn.disabled=coeffArr[i]>=8;
+    upBtn.onclick=()=>{if(coeffArr[i]<8){coeffArr[i]++;render();}};
+
+    const numDiv=document.createElement('div');
+    numDiv.className='coeff-num'+(coeffArr[i]===1?' coeff-one':'');
+    numDiv.textContent=coeffArr[i];
+
+    const formulaDiv=document.createElement('div');
+    formulaDiv.className='formula-display';
+    formulaDiv.textContent=sp.formula;
+
+    const dnBtn=document.createElement('button');
+    dnBtn.className='coeff-dn'; dnBtn.textContent='\u25bc';
+    dnBtn.disabled=coeffArr[i]<=1;
+    dnBtn.onclick=()=>{if(coeffArr[i]>1){coeffArr[i]--;render();}};
+
+    const lbl=document.createElement('div');
+    lbl.className='coeff-label'; lbl.textContent='coefficient';
+
+    ctrl.appendChild(upBtn);
+    ctrl.appendChild(numDiv);
+    ctrl.appendChild(formulaDiv);
+    ctrl.appendChild(dnBtn);
+    ctrl.appendChild(lbl);
+    el.appendChild(ctrl);
+  });
+}
+
+function drawMolecules(rxn, coeffArr){
+  const vizArea=document.getElementById('vizArea');
+  vizArea.innerHTML='';
+  const species=getSpecies(rxn);
+  const totalReactants=rxn.reactants.length;
+  const CANVAS_H=110;
+  const R_ATOM=9;
+  const MOL_PAD=6;
+
+  function makeSide(speciesList, coeffStart){
+    const side=document.createElement('div');
+    side.className='viz-side';
+    speciesList.forEach((sp,si)=>{
+      const ci=coeffStart+si;
+      const c=coeffArr[ci];
+      const lbl=document.createElement('div');
+      lbl.className='viz-label';
+      lbl.textContent=`${c > 1 ? c+' \u00d7 ' : ''}${sp.label}`;
+      side.appendChild(lbl);
+
+      const canvas=document.createElement('canvas');
+      canvas.className='molecule-canvas';
+      canvas.height=CANVAS_H;
+
+      const atomKeys=Object.keys(sp.atoms);
+      const totalAtomsPerMol=atomKeys.reduce((s,k)=>s+sp.atoms[k],0);
+
+      const molW=atomKeys.length<=2 ? 44 : 66;
+      const canvasW=Math.min(Math.max(c*(molW+MOL_PAD)+MOL_PAD, 80), 320);
+      canvas.width=canvasW;
+      canvas.style.width=canvasW+'px';
+
+      side.appendChild(canvas);
+
+      requestAnimationFrame(()=>{
+        const ctx=canvas.getContext('2d');
+        ctx.clearRect(0,0,canvasW,CANVAS_H);
+
+        const molColors=atomKeys.map((el,ei)=>{
+          const palette=['#378ADD','#E24B4A','#EF9F27','#27500A','#534AB7','#D85A30'];
+          if(atomKeys.length===1) return sp.color;
+          return palette[ei%palette.length];
+        });
+
+        for(let m=0;m<c;m++){
+          const mx=MOL_PAD+m*(molW+MOL_PAD);
+          let ax=0;
+          atomKeys.forEach((el,ei)=>{
+            const count=sp.atoms[el];
+            for(let a=0;a<count;a++){
+              const cx2=mx+ax*(R_ATOM*2+3)+R_ATOM;
+              const cy=CANVAS_H/2;
+              ctx.beginPath();
+              ctx.arc(cx2,cy,R_ATOM,0,Math.PI*2);
+              ctx.fillStyle=molColors[ei];
+              ctx.fill();
+              ctx.strokeStyle='rgba(0,0,0,0.12)';
+              ctx.lineWidth=1;
+              ctx.stroke();
+              ctx.fillStyle='#fff';
+              ctx.font='bold 9px sans-serif';
+              ctx.textAlign='center';
+              ctx.textBaseline='middle';
+              ctx.fillText(el.substring(0,2),cx2,cy);
+              ax++;
+            }
+          });
+          if(m<c-1){
+            ctx.beginPath();
+            ctx.moveTo(mx+molW,CANVAS_H/2-R_ATOM);
+            ctx.lineTo(mx+molW,CANVAS_H/2+R_ATOM);
+            ctx.strokeStyle='var(--color-border-tertiary)';
+            ctx.lineWidth=0.5;
+            ctx.stroke();
+          }
+        }
+      });
+
+      const spacer=document.createElement('div');
+      spacer.style.height='10px';
+      side.appendChild(spacer);
+    });
+    return side;
+  }
+
+  const leftSide=makeSide(rxn.reactants,0);
+  const lbl=document.createElement('div');
+  lbl.className='viz-label'; lbl.style.textAlign='center';
+  lbl.innerHTML='<br>';
+  leftSide.insertBefore(lbl, leftSide.firstChild);
+  vizArea.appendChild(leftSide);
+
+  const arrowDiv=document.createElement('div');
+  arrowDiv.className='viz-arrow'; arrowDiv.textContent='\u2192';
+  vizArea.appendChild(arrowDiv);
+
+  const rightSide=makeSide(rxn.products, rxn.reactants.length);
+  vizArea.appendChild(rightSide);
+}
+
+function renderCountTable(rxn, coeffArr){
+  const {leftAtoms,rightAtoms}=countAtoms(rxn,coeffArr);
+  const allEls=Array.from(new Set([...Object.keys(leftAtoms),...Object.keys(rightAtoms)])).sort();
+  const tbody=document.getElementById('countBody');
+  tbody.innerHTML='';
+  allEls.forEach(el=>{
+    const l=leftAtoms[el]||0, r=rightAtoms[el]||0;
+    const match=l===r;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="el-name">${el}</td><td class="count-val">${l}</td><td class="count-val">${r}</td><td style="text-align:center"><span class="${match?'match-yes':'match-no'}">${match?'Yes':'No'}</span></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function renderStatus(rxn, coeffArr){
+  const {leftAtoms,rightAtoms}=countAtoms(rxn,coeffArr);
+  const balanced=isBalanced(leftAtoms,rightAtoms);
+  const banner=document.getElementById('statusBanner');
+  const allOnes=coeffArr.every(c=>c===1);
+
+  if(!balanced){
+    const anyChanged=coeffArr.some(c=>c!==1)||rxn.balanced.every(b=>b===1);
+    if(allOnes && rxn.balanced.some(b=>b>1)){
+      banner.className='status-banner status-start';
+      banner.textContent='Adjust the coefficients above to begin.';
+    } else {
+      banner.className='status-banner status-unbalanced';
+      banner.textContent='Not balanced yet. Check the atom count table and adjust your coefficients.';
+    }
+    return;
+  }
+
+  const g=gcdArr(coeffArr);
+  if(g>1){
+    banner.className='status-banner status-not-lowest';
+    const simplified=coeffArr.map(c=>c/g);
+    const species=getSpecies(rxn);
+    const eqStr=simplified.map((c,i)=>(c===1?'':c)+species[i].label).join(' ');
+    banner.innerHTML=`<strong>Balanced</strong> — but these coefficients can be simplified. Try dividing each by ${g}. The simplest balanced form uses the smallest whole numbers. (Hint: try ${eqStr})`;
+  } else {
+    banner.className='status-banner status-balanced';
+    banner.innerHTML=`<strong>Balanced and in lowest terms.</strong> Every element has the same count on both sides, and the coefficients cannot be simplified further.`;
+  }
+}
+
+function render(){
+  const rxn=REACTIONS[currentRxn];
+  renderEq(rxn,coeffs);
+  drawMolecules(rxn,coeffs);
+  renderCountTable(rxn,coeffs);
+  renderStatus(rxn,coeffs);
+}
+
+function selectReaction(i){
+  currentRxn=i;
+  coeffs=REACTIONS[i].reactants.concat(REACTIONS[i].products).map(()=>1);
+  document.querySelectorAll('.rxn-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  render();
+}
+
+const selector=document.getElementById('rxnSelector');
+REACTIONS.forEach((rxn,i)=>{
+  const btn=document.createElement('button');
+  btn.className='rxn-btn'+(i===0?' active':'');
+  btn.textContent=rxn.shortLabel;
+  btn.onclick=()=>selectReaction(i);
+  selector.appendChild(btn);
+});
+
+document.getElementById('resetBtn').onclick=()=>{
+  coeffs=coeffs.map(()=>1);
+  render();
+};
+
+selectReaction(0);
+</script>
