@@ -1,393 +1,1075 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balancing Chemical Equations — Year 10 Science</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-sans)}
-.sim-wrap{padding:1rem 0}
-.rule-banner{background:var(--color-background-secondary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:10px 14px;font-size:13px;color:var(--color-text-secondary);margin-bottom:1.25rem;line-height:1.5}
-.rule-banner strong{color:var(--color-text-primary);font-weight:500}
-.reaction-selector{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem}
-.rxn-btn{font-size:13px;padding:6px 12px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer}
-.rxn-btn.active{background:var(--color-background-info);color:var(--color-text-info);border-color:var(--color-border-info)}
-.eq-display{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem;padding:14px;background:var(--color-background-secondary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary)}
-.species-ctrl{display:flex;flex-direction:column;align-items:center;gap:4px}
-.coeff-up,.coeff-dn{width:32px;height:24px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center}
-.coeff-up:disabled,.coeff-dn:disabled{opacity:0.3;cursor:default}
-.coeff-num{font-size:26px;font-weight:500;color:var(--color-text-primary);min-width:28px;text-align:center;line-height:1}
-.coeff-num.coeff-one{color:var(--color-text-tertiary)}
-.formula-display{font-size:20px;color:var(--color-text-primary);font-weight:500;line-height:1;text-align:center}
-.formula-display sup{font-size:12px;color:var(--color-text-secondary)}
-.formula-display .subscript{font-size:13px;vertical-align:sub;color:var(--color-text-secondary)}
-.arrow{font-size:22px;color:var(--color-text-secondary);padding:0 4px;align-self:center;margin-top:8px}
-.plus{font-size:20px;color:var(--color-text-secondary);align-self:center;margin-top:8px}
-.coeff-label{font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.04em}
-.viz-area{display:flex;align-items:flex-start;gap:16px;margin-bottom:1.25rem;flex-wrap:wrap}
-.viz-side{flex:1;min-width:200px}
-.viz-label{font-size:11px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
-.molecule-canvas{width:100%;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-tertiary);background:var(--color-background-secondary)}
-.viz-arrow{align-self:center;font-size:20px;color:var(--color-text-tertiary);padding-top:28px}
-.count-table{width:100%;border-collapse:collapse;font-size:14px;margin-bottom:1.25rem}
-.count-table th{text-align:left;font-weight:500;font-size:12px;color:var(--color-text-secondary);padding:6px 10px;border-bottom:0.5px solid var(--color-border-tertiary)}
-.count-table td{padding:7px 10px;border-bottom:0.5px solid var(--color-border-tertiary)}
-.count-table .el-name{color:var(--color-text-primary);font-weight:500}
-.count-val{font-weight:500;text-align:center}
-.match-yes{color:#27500A;background:#EAF3DE;border-radius:4px;padding:2px 8px}
-.match-no{color:#791F1F;background:#FCEBEB;border-radius:4px;padding:2px 8px}
-.status-banner{border-radius:var(--border-radius-md);padding:12px 16px;font-size:14px;margin-bottom:1rem;border:0.5px solid}
-.status-balanced{background:#EAF3DE;border-color:#97C459;color:#27500A}
-.status-not-lowest{background:#FAEEDA;border-color:#EF9F27;color:#633806}
-.status-unbalanced{background:#FCEBEB;border-color:#F09595;color:#791F1F}
-.status-start{background:var(--color-background-secondary);border-color:var(--color-border-tertiary);color:var(--color-text-secondary)}
-.reset-btn{font-size:13px;padding:6px 14px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:var(--color-background-primary);color:var(--color-text-secondary);cursor:pointer;margin-left:auto;display:block}
-</style>
+/* ── Reset & base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:    #1a1f3a;
+  --navy2:   #252b4a;
+  --navy3:   #2f3660;
+  --accent:  #4f8ef7;
+  --accent2: #7eb8f7;
+  --green:   #2d8a4e;
+  --green-bg:#e6f4ec;
+  --amber:   #b86c00;
+  --amber-bg:#fef3e2;
+  --red:     #c0392b;
+  --red-bg:  #fdecea;
+  --border:  #dde1ec;
+  --bg:      #f4f6fb;
+  --card:    #ffffff;
+  --text:    #1a1f3a;
+  --text2:   #4a5080;
+  --text3:   #8a90b0;
+  --mono:    'DM Mono', monospace;
+  --sans:    'DM Sans', sans-serif;
+  --r:       10px;
+  --r-sm:    6px;
+  --shadow:  0 2px 12px rgba(26,31,58,.10);
+  --shadow-lg: 0 4px 24px rgba(26,31,58,.16);
+}
+html, body { height: 100%; font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5; }
 
-<div class="sim-wrap">
-<h2 class="sr-only">Balancing chemical equations simulator — adjust coefficients and see atom counts update in real time</h2>
+/* ── Layout ───────────────────────────────────────────────── */
+.app { display: flex; flex-direction: column; min-height: 100vh; }
 
-<div class="rule-banner">
-  <strong>Remember:</strong> Change the <strong>coefficient</strong> (the big number in front) — never the subscript (the small number inside the formula). Adding a coefficient means adding whole molecules, not changing what the molecule is.
-</div>
+/* ── Header ───────────────────────────────────────────────── */
+.header {
+  background: var(--navy);
+  color: #fff;
+  padding: 14px 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.header-top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.header-title { font-size: 15px; font-weight: 600; letter-spacing: .02em; color: #fff; }
+.header-sub { font-size: 12px; color: var(--accent2); font-family: var(--mono); }
 
-<div class="reaction-selector" id="rxnSelector"></div>
+/* Mode tabs */
+.mode-tabs { display: flex; gap: 2px; background: rgba(255,255,255,.08); border-radius: var(--r-sm) var(--r-sm) 0 0; padding: 4px 4px 0; align-self: flex-start; }
+.mode-tab {
+  padding: 8px 20px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,.55);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--r-sm) var(--r-sm) 0 0;
+  transition: all .2s;
+  letter-spacing: .02em;
+}
+.mode-tab.active { background: var(--bg); color: var(--navy); }
+.mode-tab:not(.active):hover { color: #fff; background: rgba(255,255,255,.12); }
 
-<div class="eq-display" id="eqDisplay"></div>
+/* ── Main ─────────────────────────────────────────────────── */
+.main { flex: 1; display: flex; flex-direction: column; }
 
-<div class="viz-area" id="vizArea"></div>
+/* ── Panel (each mode) ────────────────────────────────────── */
+.panel { display: none; flex: 1; flex-direction: column; }
+.panel.active { display: flex; }
 
-<table class="count-table" id="countTable">
-  <thead><tr><th>Element</th><th style="text-align:center">Left side</th><th style="text-align:center">Right side</th><th style="text-align:center">Match?</th></tr></thead>
-  <tbody id="countBody"></tbody>
-</table>
+/* ── Practice mode ────────────────────────────────────────── */
+.practice-bar {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.practice-bar-label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; font-weight: 500; margin-right: 4px; }
+.reset-btn {
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text2);
+  border-radius: var(--r-sm);
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.reset-btn:hover { background: var(--bg); color: var(--text); }
 
-<div class="status-banner status-start" id="statusBanner">Adjust the coefficients above to begin.</div>
+.rxn-btn {
+  padding: 7px 14px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text2);
+  border-radius: var(--r-sm);
+  font-family: var(--mono);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all .15s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.rxn-btn:hover { border-color: var(--accent); color: var(--accent); }
+.rxn-btn.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+.rxn-btn.done { border-color: var(--green); color: var(--green); }
+.rxn-btn.done.active { background: var(--green); border-color: var(--green); color: #fff; }
+.tick { font-size: 11px; }
 
-<button class="reset-btn" id="resetBtn">Reset to 1</button>
-</div>
+/* ── Explore mode ─────────────────────────────────────────── */
+.explore-layout { display: flex; flex: 1; min-height: 0; }
+.explore-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.explore-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 
-<script>
-const REACTIONS = [
-  {
-    label: 'H\u2082 + O\u2082 \u2192 H\u2082O',
-    shortLabel: 'Hydrogen + oxygen',
-    reactants: [
-      { formula: 'H\u2082', atoms: {H:2}, color: '#378ADD', label: 'H\u2082' },
-      { formula: 'O\u2082', atoms: {O:2}, color: '#E24B4A', label: 'O\u2082' },
-    ],
-    products: [
-      { formula: 'H\u2082O', atoms: {H:2,O:1}, color: '#1D9E75', label: 'H\u2082O' },
-    ],
-    balanced: [2,1,2],
-  },
-  {
-    label: '2Mg + O\u2082 \u2192 MgO',
-    shortLabel: 'Magnesium + oxygen',
-    reactants: [
-      { formula: 'Mg', atoms: {Mg:1}, color: '#888780', label: 'Mg' },
-      { formula: 'O\u2082', atoms: {O:2}, color: '#E24B4A', label: 'O\u2082' },
-    ],
-    products: [
-      { formula: 'MgO', atoms: {Mg:1,O:1}, color: '#BA7517', label: 'MgO' },
-    ],
-    balanced: [2,1,2],
-  },
-  {
-    label: 'Fe + S \u2192 FeS',
-    shortLabel: 'Iron + sulfur',
-    reactants: [
-      { formula: 'Fe', atoms: {Fe:1}, color: '#5F5E5A', label: 'Fe' },
-      { formula: 'S', atoms: {S:1}, color: '#EF9F27', label: 'S' },
-    ],
-    products: [
-      { formula: 'FeS', atoms: {Fe:1,S:1}, color: '#534AB7', label: 'FeS' },
-    ],
-    balanced: [1,1,1],
-  },
-  {
-    label: 'CuCO\u2083 \u2192 CuO + CO\u2082',
-    shortLabel: 'Copper carbonate',
-    reactants: [
-      { formula: 'CuCO\u2083', atoms: {Cu:1,C:1,O:3}, color: '#D85A30', label: 'CuCO\u2083' },
-    ],
-    products: [
-      { formula: 'CuO', atoms: {Cu:1,O:1}, color: '#D4537E', label: 'CuO' },
-      { formula: 'CO\u2082', atoms: {C:1,O:2}, color: '#888780', label: 'CO\u2082' },
-    ],
-    balanced: [1,1,1],
-  },
-  {
-    label: 'Ag\u2082O \u2192 Ag + O\u2082',
-    shortLabel: 'Silver oxide',
-    reactants: [
-      { formula: 'Ag\u2082O', atoms: {Ag:2,O:1}, color: '#888780', label: 'Ag\u2082O' },
-    ],
-    products: [
-      { formula: 'Ag', atoms: {Ag:1}, color: '#B4B2A9', label: 'Ag' },
-      { formula: 'O\u2082', atoms: {O:2}, color: '#E24B4A', label: 'O\u2082' },
-    ],
-    balanced: [2,4,1],
-  },
-];
+.sidebar-section { display: flex; flex-direction: column; gap: 8px; }
+.sidebar-heading {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text3);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-type {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--navy3);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-top: 4px;
+}
+.sidebar-label { font-size: 12px; color: var(--text2); }
+.sidebar-select {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text);
+  background: var(--bg);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%238a90b0' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 24px;
+}
+.sidebar-select:focus { outline: none; border-color: var(--accent); }
+.try-btn {
+  width: 100%;
+  padding: 8px;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-sm);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s;
+  letter-spacing: .02em;
+}
+.try-btn:hover { background: var(--navy3); }
+.sidebar-divider { border: none; border-top: 1.5px dashed var(--border); margin: 4px 0; }
 
-let currentRxn = 0;
-let coeffs = [];
+.explore-reset {
+  margin-top: auto;
+  padding: 6px 0;
+  width: 100%;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text2);
+  border-radius: var(--r-sm);
+  font-family: var(--sans);
+  font-size: 12px;
+  cursor: pointer;
+}
+.explore-reset:hover { background: var(--bg); }
 
-function gcd(a,b){ return b===0?a:gcd(b,a%b); }
-function gcdArr(arr){ return arr.reduce((a,b)=>gcd(a,b)); }
-
-function getSpecies(rxn){ return [...rxn.reactants, ...rxn.products]; }
-
-function countAtoms(rxn, coeffArr){
-  const leftAtoms = {}, rightAtoms = {};
-  rxn.reactants.forEach((sp,i)=>{
-    Object.entries(sp.atoms).forEach(([el,n])=>{
-      leftAtoms[el]=(leftAtoms[el]||0)+n*coeffArr[i];
-    });
-  });
-  rxn.products.forEach((sp,i)=>{
-    Object.entries(sp.atoms).forEach(([el,n])=>{
-      const ci = rxn.reactants.length+i;
-      rightAtoms[el]=(rightAtoms[el]||0)+n*coeffArr[ci];
-    });
-  });
-  return {leftAtoms,rightAtoms};
+/* ── Simulator area (shared) ──────────────────────────────── */
+.sim-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  gap: 16px;
+  overflow-y: auto;
 }
 
-function isBalanced(leftAtoms,rightAtoms){
-  const allEls = new Set([...Object.keys(leftAtoms),...Object.keys(rightAtoms)]);
-  for(const el of allEls){
-    if((leftAtoms[el]||0)!==(rightAtoms[el]||0)) return false;
-  }
+/* Rule banner */
+.rule-banner {
+  background: var(--navy2);
+  color: rgba(255,255,255,.85);
+  border-radius: var(--r);
+  padding: 10px 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+.rule-banner strong { color: var(--accent2); font-weight: 500; }
+
+/* Equation display */
+.eq-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+}
+.eq-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-height: 90px;
+}
+.eq-placeholder {
+  color: var(--text3);
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
+  width: 100%;
+}
+
+.species-ctrl {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.coeff-btn {
+  width: 28px;
+  height: 22px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text2);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .12s;
+  font-family: var(--sans);
+}
+.coeff-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: #eef4ff; }
+.coeff-btn:disabled { opacity: .25; cursor: default; }
+
+.coeff-formula-row {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.coeff-val {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--navy);
+  min-width: 22px;
+  text-align: right;
+  line-height: 1;
+}
+.coeff-val.is-one { color: var(--text3); }
+.formula-text {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1;
+}
+.formula-sub { font-size: 14px; vertical-align: sub; color: var(--text2); }
+.eq-plus { font-family: var(--mono); font-size: 20px; color: var(--text3); align-self: center; margin-top: 6px; }
+
+/* Arrow zone */
+.eq-arrow-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  align-self: center;
+  margin-top: 6px;
+  position: relative;
+  padding: 0 8px;
+}
+.eq-arrow { font-family: var(--mono); font-size: 22px; color: var(--text2); display: block; }
+.eq-arrow-lines {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  width: 100%;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.coeff-label-sm { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; }
+
+/* Viz area */
+.viz-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.viz-inner {
+  display: flex;
+  min-height: 140px;
+  position: relative;
+}
+.viz-side {
+  flex: 1;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.viz-side-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--text3);
+}
+.viz-side.reactants { border-right: none; }
+.viz-side.products  { border-left: none; }
+.viz-divider {
+  width: 1px;
+  background: transparent;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.viz-divider::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 1px;
+  border-left: 2px dashed var(--border);
+}
+.viz-divider-arrow {
+  background: var(--card);
+  z-index: 1;
+  padding: 4px 8px;
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--text2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  line-height: 1;
+}
+.mol-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mol-label { font-family: var(--mono); font-size: 12px; color: var(--text2); }
+canvas.mol-canvas { display: block; }
+.viz-placeholder { color: var(--text3); font-size: 12px; font-style: italic; align-self: center; }
+
+/* Count table */
+.count-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.count-card-header {
+  padding: 10px 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  color: var(--text2);
+}
+.count-card-header strong { color: var(--text); font-weight: 500; }
+table.count-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.count-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--text3);
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+.count-table th:not(:first-child) { text-align: center; }
+.count-table td { padding: 8px 16px; border-bottom: 1px solid var(--border); }
+.count-table tbody tr:last-child td { border-bottom: none; }
+.count-table td:not(:first-child) { text-align: center; font-family: var(--mono); }
+.el-name { font-weight: 500; font-family: var(--mono); }
+.badge { display: inline-block; border-radius: 4px; padding: 2px 10px; font-size: 12px; font-weight: 500; }
+.badge-yes { background: var(--green-bg); color: var(--green); }
+.badge-no  { background: var(--red-bg);   color: var(--red); }
+
+/* Status banner */
+.status-banner {
+  border-radius: var(--r);
+  padding: 12px 16px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  border: 1.5px solid;
+}
+.status-start    { background: var(--bg);       border-color: var(--border);  color: var(--text3); }
+.status-unbal    { background: var(--red-bg);    border-color: #f0a0a0;       color: var(--red); }
+.status-lowest   { background: var(--green-bg);  border-color: #7dc99a;       color: var(--green); }
+.status-notlow   { background: var(--amber-bg);  border-color: #f0c060;       color: var(--amber); }
+.status-noreact  { background: #f0f0ff;          border-color: #c0c0e8;       color: #444488; }
+
+/* Congrats overlay for practice mode */
+.congrats-banner {
+  background: linear-gradient(135deg, #1a3a2a, #2d8a4e);
+  color: #fff;
+  border-radius: var(--r);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+.congrats-icon { font-size: 24px; }
+.congrats-sub { font-size: 12px; font-weight: 400; color: rgba(255,255,255,.8); margin-top: 2px; }
+
+/* No reaction state */
+.no-react-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 32px;
+  text-align: center;
+  min-height: 140px;
+}
+.no-react-icon { font-size: 32px; }
+.no-react-title { font-size: 14px; font-weight: 500; color: #444488; }
+.no-react-sub { font-size: 12px; color: var(--text3); max-width: 280px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── Header ─────────────────────────────────────────────── -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">Balancing Chemical Equations</div>
+      <div class="header-sub">Year 10 Science · Focus Area 2</div>
+    </div>
+  </div>
+  <div class="mode-tabs">
+    <button class="mode-tab active" onclick="setMode('practice')">Practice</button>
+    <button class="mode-tab" onclick="setMode('explore')">Explore</button>
+  </div>
+</div>
+
+<!-- ── Practice panel ──────────────────────────────────────── -->
+<div class="panel active" id="panel-practice">
+  <div class="practice-bar">
+    <span class="practice-bar-label">Reactions</span>
+    <div id="practiceRxnBtns" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+    <button class="reset-btn" onclick="practiceReset()">Reset coefficients to 1</button>
+  </div>
+  <div class="sim-area" id="practiceSimArea">
+    <div class="rule-banner">
+      <strong>Remember:</strong> Change the <strong>coefficient</strong> — the number to the left of the formula. Never change the subscript (the small number inside the formula). Adding a coefficient means adding whole molecules.
+    </div>
+    <div id="practiceCongratsSlot"></div>
+    <div class="eq-card" id="practiceEqCard"><div class="eq-row"><span class="eq-placeholder">Select a reaction above to begin.</span></div></div>
+    <div class="viz-card" id="practiceVizCard"><div class="viz-inner"><div class="no-react-state"><span class="no-react-icon">⚗️</span><div class="no-react-title">Select a reaction to see the molecules.</div></div></div></div>
+    <div class="count-card" id="practiceCountCard">
+      <div class="count-card-header"><strong>Atom count table</strong> — This table counts individual atoms for each element, not whole molecules. Even atoms bonded inside a molecule are counted separately.</div>
+      <table class="count-table"><thead><tr><th>Element</th><th>Left side</th><th>Right side</th><th>Match?</th></tr></thead><tbody id="practiceCountBody"><tr><td colspan="4" style="text-align:center;color:var(--text3);padding:16px;font-size:13px;">No reaction selected.</td></tr></tbody></table>
+    </div>
+    <div class="status-banner status-start" id="practiceStatus">Select a reaction above to begin.</div>
+  </div>
+</div>
+
+<!-- ── Explore panel ───────────────────────────────────────── -->
+<div class="panel" id="panel-explore">
+  <div class="explore-layout">
+    <div class="explore-sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-heading">Explore reactions</div>
+
+        <div class="sidebar-type">Synthesis</div>
+        <div class="sidebar-label">Reactant A</div>
+        <select class="sidebar-select" id="expA">
+          <option value="">— select —</option>
+          <option value="Mg">Magnesium (Mg)</option>
+          <option value="Fe">Iron (Fe)</option>
+          <option value="H2">Hydrogen (H₂)</option>
+          <option value="N2">Nitrogen (N₂)</option>
+          <option value="Na">Sodium (Na)</option>
+          <option value="S">Sulfur (S)</option>
+          <option value="Ca">Calcium (Ca)</option>
+          <option value="Al">Aluminium (Al)</option>
+        </select>
+        <div class="sidebar-label">Reactant B</div>
+        <select class="sidebar-select" id="expB">
+          <option value="">— select —</option>
+          <option value="O2">Oxygen (O₂)</option>
+          <option value="S">Sulfur (S)</option>
+          <option value="Cl2">Chlorine (Cl₂)</option>
+          <option value="H2">Hydrogen (H₂)</option>
+        </select>
+        <button class="try-btn" onclick="exploreSynthesis()">Try this reaction →</button>
+
+        <hr class="sidebar-divider">
+
+        <div class="sidebar-type">Decomposition</div>
+        <div class="sidebar-label">Compound</div>
+        <select class="sidebar-select" id="expDecomp">
+          <option value="">— select —</option>
+          <option value="CuCO3">Copper carbonate (CuCO₃)</option>
+          <option value="PbCO3">Lead carbonate (PbCO₃)</option>
+          <option value="Ag2O">Silver oxide (Ag₂O)</option>
+          <option value="H2O">Water (H₂O)</option>
+          <option value="HgO">Mercury oxide (HgO)</option>
+          <option value="ZnCO3">Zinc carbonate (ZnCO₃)</option>
+        </select>
+        <button class="try-btn" onclick="exploreDecomp()">Try this reaction →</button>
+      </div>
+
+      <button class="explore-reset" onclick="exploreReset()">Reset coefficients to 1</button>
+    </div>
+
+    <div class="explore-main">
+      <div class="sim-area" id="exploreSimArea">
+        <div class="rule-banner">
+          <strong>Remember:</strong> Change the <strong>coefficient</strong> — the number to the left of the formula. Never change the subscript (the small number inside the formula). Adding a coefficient means adding whole molecules.
+        </div>
+        <div class="eq-card" id="exploreEqCard"><div class="eq-row"><span class="eq-placeholder">Select a reaction from the panel to begin.</span></div></div>
+        <div class="viz-card" id="exploreVizCard"><div class="viz-inner"><div class="no-react-state"><span class="no-react-icon">⚗️</span><div class="no-react-title">Choose reactants to see the molecules.</div></div></div></div>
+        <div class="count-card" id="exploreCountCard">
+          <div class="count-card-header"><strong>Atom count table</strong> — This table counts individual atoms for each element, not whole molecules. Even atoms bonded inside a molecule are counted separately.</div>
+          <table class="count-table"><thead><tr><th>Element</th><th>Left side</th><th>Right side</th><th>Match?</th></tr></thead><tbody id="exploreCountBody"><tr><td colspan="4" style="text-align:center;color:var(--text3);padding:16px;font-size:13px;">No reaction selected.</td></tr></tbody></table>
+        </div>
+        <div class="status-banner status-start" id="exploreStatus">Select a reaction from the panel to begin.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- .app -->
+
+<script>
+// ── Atom colour map ───────────────────────────────────────────────────────────
+const ATOM_COLORS = {
+  H:  { fill: '#4f8ef7', stroke: '#2060c0', text: '#fff' },
+  O:  { fill: '#e05050', stroke: '#a02020', text: '#fff' },
+  N:  { fill: '#5050d0', stroke: '#2020a0', text: '#fff' },
+  Mg: { fill: '#9090a0', stroke: '#606070', text: '#fff' },
+  Fe: { fill: '#707080', stroke: '#404050', text: '#fff' },
+  S:  { fill: '#e8a820', stroke: '#a07010', text: '#fff' },
+  Ca: { fill: '#60a060', stroke: '#307030', text: '#fff' },
+  Al: { fill: '#b0b8c8', stroke: '#7080a0', text: '#1a1f3a' },
+  Na: { fill: '#e070c0', stroke: '#a04080', text: '#fff' },
+  Cl: { fill: '#40c040', stroke: '#208020', text: '#fff' },
+  Cu: { fill: '#d08040', stroke: '#905020', text: '#fff' },
+  C:  { fill: '#404040', stroke: '#202020', text: '#fff' },
+  Pb: { fill: '#606870', stroke: '#3a4048', text: '#fff' },
+  Ag: { fill: '#c8ccd8', stroke: '#8890a8', text: '#1a1f3a' },
+  Zn: { fill: '#7090a8', stroke: '#406080', text: '#fff' },
+  Hg: { fill: '#a09898', stroke: '#706060', text: '#fff' },
+};
+
+// ── Species definitions ───────────────────────────────────────────────────────
+const SPECIES = {
+  // Elements / simple molecules
+  H2:    { formula: [['H',2]],               label: 'H₂' },
+  O2:    { formula: [['O',2]],               label: 'O₂' },
+  N2:    { formula: [['N',2]],               label: 'N₂' },
+  Mg:    { formula: [['Mg',1]],              label: 'Mg' },
+  Fe:    { formula: [['Fe',1]],              label: 'Fe' },
+  S:     { formula: [['S',1]],              label: 'S' },
+  Ca:    { formula: [['Ca',1]],              label: 'Ca' },
+  Al:    { formula: [['Al',1]],              label: 'Al' },
+  Na:    { formula: [['Na',1]],              label: 'Na' },
+  Cl2:   { formula: [['Cl',2]],             label: 'Cl₂' },
+  // Products
+  MgO:   { formula: [['Mg',1],['O',1]],     label: 'MgO' },
+  MgCl2: { formula: [['Mg',1],['Cl',2]],    label: 'MgCl₂' },
+  FeS:   { formula: [['Fe',1],['S',1]],     label: 'FeS' },
+  H2O:   { formula: [['H',2],['O',1]],      label: 'H₂O' },
+  HCl:   { formula: [['H',1],['Cl',1]],     label: 'HCl' },
+  NH3:   { formula: [['N',1],['H',3]],      label: 'NH₃' },
+  NaCl:  { formula: [['Na',1],['Cl',1]],    label: 'NaCl' },
+  SO2:   { formula: [['S',1],['O',2]],      label: 'SO₂' },
+  CaO:   { formula: [['Ca',1],['O',1]],     label: 'CaO' },
+  Al2O3: { formula: [['Al',2],['O',3]],     label: 'Al₂O₃' },
+  CaCl2: { formula: [['Ca',1],['Cl',2]],    label: 'CaCl₂' },
+  // Decomposition reactants
+  CuCO3: { formula: [['Cu',1],['C',1],['O',3]], label: 'CuCO₃' },
+  PbCO3: { formula: [['Pb',1],['C',1],['O',3]], label: 'PbCO₃' },
+  Ag2O:  { formula: [['Ag',2],['O',1]],     label: 'Ag₂O' },
+  HgO:   { formula: [['Hg',1],['O',1]],     label: 'HgO' },
+  ZnCO3: { formula: [['Zn',1],['C',1],['O',3]], label: 'ZnCO₃' },
+  // Decomposition products
+  CuO:   { formula: [['Cu',1],['O',1]],     label: 'CuO' },
+  CO2:   { formula: [['C',1],['O',2]],      label: 'CO₂' },
+  PbO:   { formula: [['Pb',1],['O',1]],     label: 'PbO' },
+  Ag:    { formula: [['Ag',1]],             label: 'Ag' },
+  Hg:    { formula: [['Hg',1]],             label: 'Hg' },
+  ZnO:   { formula: [['Zn',1],['O',1]],     label: 'ZnO' },
+};
+
+// ── Reaction graph ────────────────────────────────────────────────────────────
+// key: sorted reactant IDs joined by '+'
+// Each: { reactants: [...], products: [...], balanced: [...coefficients...] }
+const PRACTICE_REACTIONS = [
+  { key:'H2+O2',   reactants:['H2','O2'],   products:['H2O'],       balanced:[2,1,2],   label:'H₂ + O₂' },
+  { key:'Mg+O2',   reactants:['Mg','O2'],   products:['MgO'],       balanced:[2,1,2],   label:'Mg + O₂' },
+  { key:'Fe+S',    reactants:['Fe','S'],     products:['FeS'],       balanced:[1,1,1],   label:'Fe + S' },
+  { key:'CuCO3',   reactants:['CuCO3'],      products:['CuO','CO2'], balanced:[1,1,1],   label:'CuCO₃' },
+  { key:'Ag2O',    reactants:['Ag2O'],        products:['Ag','O2'],   balanced:[2,4,1],   label:'Ag₂O' },
+];
+
+const SYNTHESIS_GRAPH = {
+  'Mg+O2':  { reactants:['Mg','O2'],  products:['MgO'],    balanced:[2,1,2]   },
+  'Mg+Cl2': { reactants:['Mg','Cl2'], products:['MgCl2'],  balanced:[1,1,1]   },
+  'Fe+S':   { reactants:['Fe','S'],   products:['FeS'],    balanced:[1,1,1]   },
+  'H2+O2':  { reactants:['H2','O2'],  products:['H2O'],    balanced:[2,1,2]   },
+  'H2+Cl2': { reactants:['H2','Cl2'], products:['HCl'],    balanced:[1,1,2]   },
+  'N2+H2':  { reactants:['N2','H2'],  products:['NH3'],    balanced:[1,3,2]   },
+  'Na+Cl2': { reactants:['Na','Cl2'], products:['NaCl'],   balanced:[2,1,2]   },
+  'S+O2':   { reactants:['S','O2'],   products:['SO2'],    balanced:[1,1,1]   },
+  'Ca+O2':  { reactants:['Ca','O2'],  products:['CaO'],    balanced:[2,1,2]   },
+  'Al+O2':  { reactants:['Al','O2'],  products:['Al2O3'],  balanced:[4,3,2]   },
+  'Ca+Cl2': { reactants:['Ca','Cl2'], products:['CaCl2'],  balanced:[1,1,1]   },
+};
+
+const DECOMP_GRAPH = {
+  'CuCO3': { reactants:['CuCO3'], products:['CuO','CO2'],  balanced:[1,1,1]  },
+  'PbCO3': { reactants:['PbCO3'], products:['PbO','CO2'],  balanced:[1,1,1]  },
+  'Ag2O':  { reactants:['Ag2O'],  products:['Ag','O2'],    balanced:[2,4,1]  },
+  'H2O':   { reactants:['H2O'],   products:['H2','O2'],    balanced:[2,2,1]  },
+  'HgO':   { reactants:['HgO'],   products:['Hg','O2'],    balanced:[2,2,1]  },
+  'ZnCO3': { reactants:['ZnCO3'], products:['ZnO','CO2'],  balanced:[1,1,1]  },
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let mode = 'practice';
+let practiceState = { rxnIndex: null, coeffs: [], done: new Set() };
+let exploreState  = { rxn: null, coeffs: [] };
+
+// ── Mode switching ─────────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-tab').forEach((t,i)=>t.classList.toggle('active', (i===0&&m==='practice')||(i===1&&m==='explore')));
+  document.getElementById('panel-practice').classList.toggle('active', m==='practice');
+  document.getElementById('panel-explore').classList.toggle('active', m==='explore');
+}
+
+// ── GCD ───────────────────────────────────────────────────────────────────────
+function gcd(a,b){ return b===0?a:gcd(b,a%b); }
+function gcdArr(arr){ return arr.reduce((a,b)=>gcd(Math.abs(a),Math.abs(b))); }
+
+// ── Atom counting ─────────────────────────────────────────────────────────────
+function atomsFor(speciesId, coeff) {
+  const sp = SPECIES[speciesId];
+  const result = {};
+  sp.formula.forEach(([el,n]) => { result[el] = (result[el]||0) + n*coeff; });
+  return result;
+}
+function mergeAtoms(maps) {
+  const out = {};
+  maps.forEach(m => Object.entries(m).forEach(([el,n]) => { out[el]=(out[el]||0)+n; }));
+  return out;
+}
+function countSides(rxn, coeffs) {
+  const leftAtoms  = mergeAtoms(rxn.reactants.map((id,i)=>atomsFor(id,coeffs[i])));
+  const rightAtoms = mergeAtoms(rxn.products.map((id,i)=>atomsFor(id,coeffs[rxn.reactants.length+i])));
+  return { leftAtoms, rightAtoms };
+}
+function isBalanced(left,right) {
+  const els = new Set([...Object.keys(left),...Object.keys(right)]);
+  for(const el of els) { if((left[el]||0)!==(right[el]||0)) return false; }
   return true;
 }
 
-function renderEq(rxn, coeffArr){
-  const el = document.getElementById('eqDisplay');
-  el.innerHTML='';
-  const species = getSpecies(rxn);
-  const totalReactants = rxn.reactants.length;
+// ── Render formula as HTML ─────────────────────────────────────────────────────
+function formulaHtml(id) {
+  const sp = SPECIES[id];
+  return sp.formula.map(([el,n]) => el + (n>1?`<span class="formula-sub">${n}</span>`:'')).join('');
+}
 
-  species.forEach((sp,i)=>{
-    if(i===totalReactants){
-      const arrow=document.createElement('div');
-      arrow.className='arrow'; arrow.textContent='\u2192';
-      el.appendChild(arrow);
-    } else if(i>0 && i!==totalReactants){
-      const plus=document.createElement('div');
-      plus.className='plus'; plus.textContent='+';
-      el.appendChild(plus);
-    } else if(i===0 && totalReactants===0){
+// ── Draw equation row ─────────────────────────────────────────────────────────
+function renderEq(rxn, coeffs, containerId, onCoeffChange) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  const row = document.createElement('div');
+  row.className = 'eq-row';
+
+  const allSpecies = [...rxn.reactants, ...rxn.products];
+  const nReact = rxn.reactants.length;
+
+  allSpecies.forEach((id, i) => {
+    // Insert arrow between reactants and products
+    if (i === nReact) {
+      const zone = document.createElement('div');
+      zone.className = 'eq-arrow-zone';
+      zone.innerHTML = '<span class="eq-arrow">→</span>';
+      row.appendChild(zone);
+    } else if (i > 0 && i !== nReact) {
+      const pl = document.createElement('span');
+      pl.className = 'eq-plus'; pl.textContent = '+';
+      row.appendChild(pl);
     }
-    if(i>totalReactants){
-      const plus=document.createElement('div');
-      plus.className='plus'; plus.textContent='+';
-      el.appendChild(plus);
+    if (i > nReact) {
+      const pl = document.createElement('span');
+      pl.className = 'eq-plus'; pl.textContent = '+';
+      row.appendChild(pl);
     }
 
-    const ctrl=document.createElement('div');
-    ctrl.className='species-ctrl';
+    const ctrl = document.createElement('div');
+    ctrl.className = 'species-ctrl';
 
-    const upBtn=document.createElement('button');
-    upBtn.className='coeff-up'; upBtn.textContent='\u25b2';
-    upBtn.disabled=coeffArr[i]>=8;
-    upBtn.onclick=()=>{if(coeffArr[i]<8){coeffArr[i]++;render();}};
+    const upBtn = document.createElement('button');
+    upBtn.className = 'coeff-btn';
+    upBtn.textContent = '▲';
+    upBtn.disabled = coeffs[i] >= 8;
+    upBtn.onclick = () => { coeffs[i]++; onCoeffChange(); };
 
-    const numDiv=document.createElement('div');
-    numDiv.className='coeff-num'+(coeffArr[i]===1?' coeff-one':'');
-    numDiv.textContent=coeffArr[i];
+    const cfRow = document.createElement('div');
+    cfRow.className = 'coeff-formula-row';
 
-    const formulaDiv=document.createElement('div');
-    formulaDiv.className='formula-display';
-    formulaDiv.textContent=sp.formula;
+    const cfVal = document.createElement('span');
+    cfVal.className = 'coeff-val' + (coeffs[i]===1?' is-one':'');
+    cfVal.textContent = coeffs[i];
 
-    const dnBtn=document.createElement('button');
-    dnBtn.className='coeff-dn'; dnBtn.textContent='\u25bc';
-    dnBtn.disabled=coeffArr[i]<=1;
-    dnBtn.onclick=()=>{if(coeffArr[i]>1){coeffArr[i]--;render();}};
+    const fmla = document.createElement('span');
+    fmla.className = 'formula-text';
+    fmla.innerHTML = formulaHtml(id);
 
-    const lbl=document.createElement('div');
-    lbl.className='coeff-label'; lbl.textContent='coefficient';
+    cfRow.appendChild(cfVal);
+    cfRow.appendChild(fmla);
+
+    const dnBtn = document.createElement('button');
+    dnBtn.className = 'coeff-btn';
+    dnBtn.textContent = '▼';
+    dnBtn.disabled = coeffs[i] <= 1;
+    dnBtn.onclick = () => { coeffs[i]--; onCoeffChange(); };
+
+    const lbl = document.createElement('div');
+    lbl.className = 'coeff-label-sm'; lbl.textContent = 'coefficient';
 
     ctrl.appendChild(upBtn);
-    ctrl.appendChild(numDiv);
-    ctrl.appendChild(formulaDiv);
+    ctrl.appendChild(cfRow);
     ctrl.appendChild(dnBtn);
     ctrl.appendChild(lbl);
-    el.appendChild(ctrl);
+    row.appendChild(ctrl);
   });
+
+  container.appendChild(row);
 }
 
-function drawMolecules(rxn, coeffArr){
-  const vizArea=document.getElementById('vizArea');
-  vizArea.innerHTML='';
-  const species=getSpecies(rxn);
-  const totalReactants=rxn.reactants.length;
-  const CANVAS_H=110;
-  const R_ATOM=9;
-  const MOL_PAD=6;
+// ── Draw molecules ─────────────────────────────────────────────────────────────
+const R = 11;          // atom radius
+const BOND_GAP = 0;    // atoms touch within molecule
+const MOL_SEP = 18;    // gap between molecule copies
 
-  function makeSide(speciesList, coeffStart){
-    const side=document.createElement('div');
-    side.className='viz-side';
-    speciesList.forEach((sp,si)=>{
-      const ci=coeffStart+si;
-      const c=coeffArr[ci];
-      const lbl=document.createElement('div');
-      lbl.className='viz-label';
-      lbl.textContent=`${c > 1 ? c+' \u00d7 ' : ''}${sp.label}`;
-      side.appendChild(lbl);
+function drawMolCanvas(speciesId, coeff) {
+  const sp = SPECIES[speciesId];
+  const formula = sp.formula; // [[el,count],...]
+  const totalAtoms = formula.reduce((s,[,n])=>s+n,0);
 
-      const canvas=document.createElement('canvas');
-      canvas.className='molecule-canvas';
-      canvas.height=CANVAS_H;
+  // Layout atoms in a row within one molecule
+  const molW = totalAtoms*(R*2) + (totalAtoms-1)*BOND_GAP;
+  const canvasW = coeff*molW + (coeff-1)*MOL_SEP + 4;
+  const canvasH = R*2 + 4;
 
-      const atomKeys=Object.keys(sp.atoms);
-      const totalAtomsPerMol=atomKeys.reduce((s,k)=>s+sp.atoms[k],0);
+  const canvas = document.createElement('canvas');
+  canvas.width = canvasW;
+  canvas.height = canvasH;
+  canvas.className = 'mol-canvas';
+  canvas.style.width = Math.min(canvasW, 360) + 'px';
+  canvas.style.height = canvasH + 'px';
 
-      const molW=atomKeys.length<=2 ? 44 : 66;
-      const canvasW=Math.min(Math.max(c*(molW+MOL_PAD)+MOL_PAD, 80), 320);
-      canvas.width=canvasW;
-      canvas.style.width=canvasW+'px';
+  requestAnimationFrame(() => {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvasW,canvasH);
 
-      side.appendChild(canvas);
-
-      requestAnimationFrame(()=>{
-        const ctx=canvas.getContext('2d');
-        ctx.clearRect(0,0,canvasW,CANVAS_H);
-
-        const molColors=atomKeys.map((el,ei)=>{
-          const palette=['#378ADD','#E24B4A','#EF9F27','#27500A','#534AB7','#D85A30'];
-          if(atomKeys.length===1) return sp.color;
-          return palette[ei%palette.length];
-        });
-
-        for(let m=0;m<c;m++){
-          const mx=MOL_PAD+m*(molW+MOL_PAD);
-          let ax=0;
-          atomKeys.forEach((el,ei)=>{
-            const count=sp.atoms[el];
-            for(let a=0;a<count;a++){
-              const cx2=mx+ax*(R_ATOM*2+3)+R_ATOM;
-              const cy=CANVAS_H/2;
-              ctx.beginPath();
-              ctx.arc(cx2,cy,R_ATOM,0,Math.PI*2);
-              ctx.fillStyle=molColors[ei];
-              ctx.fill();
-              ctx.strokeStyle='rgba(0,0,0,0.12)';
-              ctx.lineWidth=1;
-              ctx.stroke();
-              ctx.fillStyle='#fff';
-              ctx.font='bold 9px sans-serif';
-              ctx.textAlign='center';
-              ctx.textBaseline='middle';
-              ctx.fillText(el.substring(0,2),cx2,cy);
-              ax++;
-            }
-          });
-          if(m<c-1){
-            ctx.beginPath();
-            ctx.moveTo(mx+molW,CANVAS_H/2-R_ATOM);
-            ctx.lineTo(mx+molW,CANVAS_H/2+R_ATOM);
-            ctx.strokeStyle='var(--color-border-tertiary)';
-            ctx.lineWidth=0.5;
-            ctx.stroke();
-          }
+    for(let m=0; m<coeff; m++) {
+      const molStart = 2 + m*(molW+MOL_SEP);
+      let ax = 0;
+      formula.forEach(([el, n]) => {
+        const col = ATOM_COLORS[el] || { fill:'#888', stroke:'#444', text:'#fff' };
+        for(let a=0; a<n; a++) {
+          const cx = molStart + ax*(R*2+BOND_GAP) + R;
+          const cy = canvasH/2;
+          ctx.beginPath();
+          ctx.arc(cx, cy, R, 0, Math.PI*2);
+          ctx.fillStyle = col.fill;
+          ctx.fill();
+          ctx.strokeStyle = col.stroke;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          ctx.fillStyle = col.text;
+          ctx.font = `bold ${el.length>1?8:9}px 'DM Mono', monospace`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(el.length>2?el.substring(0,2):el, cx, cy);
+          ax++;
         }
       });
+    }
+  });
 
-      const spacer=document.createElement('div');
-      spacer.style.height='10px';
-      side.appendChild(spacer);
-    });
-    return side;
-  }
-
-  const leftSide=makeSide(rxn.reactants,0);
-  const lbl=document.createElement('div');
-  lbl.className='viz-label'; lbl.style.textAlign='center';
-  lbl.innerHTML='<br>';
-  leftSide.insertBefore(lbl, leftSide.firstChild);
-  vizArea.appendChild(leftSide);
-
-  const arrowDiv=document.createElement('div');
-  arrowDiv.className='viz-arrow'; arrowDiv.textContent='\u2192';
-  vizArea.appendChild(arrowDiv);
-
-  const rightSide=makeSide(rxn.products, rxn.reactants.length);
-  vizArea.appendChild(rightSide);
+  return canvas;
 }
 
-function renderCountTable(rxn, coeffArr){
-  const {leftAtoms,rightAtoms}=countAtoms(rxn,coeffArr);
-  const allEls=Array.from(new Set([...Object.keys(leftAtoms),...Object.keys(rightAtoms)])).sort();
-  const tbody=document.getElementById('countBody');
-  tbody.innerHTML='';
-  allEls.forEach(el=>{
-    const l=leftAtoms[el]||0, r=rightAtoms[el]||0;
-    const match=l===r;
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="el-name">${el}</td><td class="count-val">${l}</td><td class="count-val">${r}</td><td style="text-align:center"><span class="${match?'match-yes':'match-no'}">${match?'Yes':'No'}</span></td>`;
+function renderViz(rxn, coeffs, containerId) {
+  const container = document.getElementById(containerId);
+  const inner = document.createElement('div');
+  inner.className = 'viz-inner';
+
+  // Reactants side
+  const leftSide = document.createElement('div');
+  leftSide.className = 'viz-side reactants';
+  const leftLbl = document.createElement('div');
+  leftLbl.className = 'viz-side-label'; leftLbl.textContent = 'Reactants';
+  leftSide.appendChild(leftLbl);
+
+  rxn.reactants.forEach((id,i) => {
+    const row = document.createElement('div');
+    row.className = 'mol-row';
+    const lbl = document.createElement('div');
+    lbl.className = 'mol-label';
+    lbl.textContent = coeffs[i]>1?`${coeffs[i]} × ${SPECIES[id].label}`:SPECIES[id].label;
+    row.appendChild(lbl);
+    row.appendChild(drawMolCanvas(id, coeffs[i]));
+    leftSide.appendChild(row);
+  });
+
+  // Divider with arrow
+  const divider = document.createElement('div');
+  divider.className = 'viz-divider';
+  const arrowBadge = document.createElement('div');
+  arrowBadge.className = 'viz-divider-arrow';
+  arrowBadge.textContent = '→';
+  divider.appendChild(arrowBadge);
+
+  // Products side
+  const rightSide = document.createElement('div');
+  rightSide.className = 'viz-side products';
+  const rightLbl = document.createElement('div');
+  rightLbl.className = 'viz-side-label'; rightLbl.textContent = 'Products';
+  rightSide.appendChild(rightLbl);
+
+  rxn.products.forEach((id,i) => {
+    const ci = rxn.reactants.length+i;
+    const row = document.createElement('div');
+    row.className = 'mol-row';
+    const lbl = document.createElement('div');
+    lbl.className = 'mol-label';
+    lbl.textContent = coeffs[ci]>1?`${coeffs[ci]} × ${SPECIES[id].label}`:SPECIES[id].label;
+    row.appendChild(lbl);
+    row.appendChild(drawMolCanvas(id, coeffs[ci]));
+    rightSide.appendChild(row);
+  });
+
+  inner.appendChild(leftSide);
+  inner.appendChild(divider);
+  inner.appendChild(rightSide);
+  container.innerHTML = '';
+  container.appendChild(inner);
+}
+
+// ── Count table ───────────────────────────────────────────────────────────────
+function renderCountTable(rxn, coeffs, tbodyId) {
+  const { leftAtoms, rightAtoms } = countSides(rxn, coeffs);
+  const els = Array.from(new Set([...Object.keys(leftAtoms),...Object.keys(rightAtoms)])).sort();
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = '';
+  els.forEach(el => {
+    const l = leftAtoms[el]||0, r = rightAtoms[el]||0;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="el-name">${el}</td><td>${l}</td><td>${r}</td><td><span class="badge ${l===r?'badge-yes':'badge-no'}">${l===r?'Yes':'No'}</span></td>`;
     tbody.appendChild(tr);
   });
 }
 
-function renderStatus(rxn, coeffArr){
-  const {leftAtoms,rightAtoms}=countAtoms(rxn,coeffArr);
-  const balanced=isBalanced(leftAtoms,rightAtoms);
-  const banner=document.getElementById('statusBanner');
-  const allOnes=coeffArr.every(c=>c===1);
+// ── Status banner ─────────────────────────────────────────────────────────────
+function renderStatus(rxn, coeffs, statusId) {
+  const el = document.getElementById(statusId);
+  const { leftAtoms, rightAtoms } = countSides(rxn, coeffs);
+  const balanced = isBalanced(leftAtoms, rightAtoms);
 
-  if(!balanced){
-    const anyChanged=coeffArr.some(c=>c!==1)||rxn.balanced.every(b=>b===1);
-    if(allOnes && rxn.balanced.some(b=>b>1)){
-      banner.className='status-banner status-start';
-      banner.textContent='Adjust the coefficients above to begin.';
+  if (!balanced) {
+    const allOne = coeffs.every(c=>c===1);
+    if (allOne && rxn.balanced && rxn.balanced.some(b=>b>1)) {
+      el.className = 'status-banner status-start';
+      el.textContent = 'Adjust the coefficients to begin balancing.';
     } else {
-      banner.className='status-banner status-unbalanced';
-      banner.textContent='Not balanced yet. Check the atom count table and adjust your coefficients.';
+      el.className = 'status-banner status-unbal';
+      el.textContent = 'Not balanced yet. Check the atom count table and adjust your coefficients.';
     }
+    return false;
+  }
+
+  const g = gcdArr(coeffs);
+  if (g > 1) {
+    const simplified = coeffs.map(c=>c/g);
+    const allSpecies = [...rxn.reactants, ...rxn.products];
+    const hint = simplified.map((c,i)=>(c===1?'':c)+SPECIES[allSpecies[i]].label).join(' ');
+    el.className = 'status-banner status-notlow';
+    el.innerHTML = `<strong>Balanced</strong> — but these coefficients can be simplified. Each can be divided by ${g}. Try smaller whole numbers. Hint: ${hint}`;
+    return false; // not "truly done" until lowest terms
+  }
+
+  el.className = 'status-banner status-lowest';
+  el.innerHTML = `<strong>Balanced and in lowest terms.</strong> Every element has the same count on both sides, and the coefficients are as small as they can be.`;
+  return true; // fully correct
+}
+
+// ── PRACTICE MODE ─────────────────────────────────────────────────────────────
+function initPractice() {
+  const bar = document.getElementById('practiceRxnBtns');
+  bar.innerHTML = '';
+  PRACTICE_REACTIONS.forEach((rxn,i) => {
+    const btn = document.createElement('button');
+    btn.className = 'rxn-btn' + (practiceState.done.has(i)?' done':'');
+    btn.innerHTML = (practiceState.done.has(i)?'<span class="tick">✓</span> ':'')+rxn.label;
+    btn.onclick = () => selectPracticeRxn(i);
+    if(practiceState.rxnIndex===i) btn.classList.add('active');
+    bar.appendChild(btn);
+  });
+  checkPracticeCongrats();
+}
+
+function selectPracticeRxn(i) {
+  practiceState.rxnIndex = i;
+  const rxn = PRACTICE_REACTIONS[i];
+  practiceState.coeffs = rxn.reactants.concat(rxn.products).map(()=>1);
+  renderPractice();
+  initPractice();
+}
+
+function renderPractice() {
+  if (practiceState.rxnIndex === null) return;
+  const rxn = PRACTICE_REACTIONS[practiceState.rxnIndex];
+  const coeffs = practiceState.coeffs;
+
+  renderEq(rxn, coeffs, 'practiceEqCard', renderPractice);
+  renderViz(rxn, coeffs, 'practiceVizCard');
+  renderCountTable(rxn, coeffs, 'practiceCountBody');
+  const correct = renderStatus(rxn, coeffs, 'practiceStatus');
+
+  if (correct) {
+    practiceState.done.add(practiceState.rxnIndex);
+    initPractice();
+    checkPracticeCongrats();
+  }
+}
+
+function practiceReset() {
+  if (practiceState.rxnIndex === null) return;
+  const rxn = PRACTICE_REACTIONS[practiceState.rxnIndex];
+  practiceState.coeffs = rxn.reactants.concat(rxn.products).map(()=>1);
+  renderPractice();
+}
+
+function checkPracticeCongrats() {
+  const slot = document.getElementById('practiceCongratsSlot');
+  if (practiceState.done.size === PRACTICE_REACTIONS.length) {
+    slot.innerHTML = `
+      <div class="congrats-banner">
+        <div class="congrats-icon">🎉</div>
+        <div>
+          <div>All ${PRACTICE_REACTIONS.length} practice reactions balanced correctly!</div>
+          <div class="congrats-sub">Great work. Try Explore mode to experiment with different reactions.</div>
+        </div>
+      </div>`;
+  } else {
+    slot.innerHTML = '';
+  }
+}
+
+// ── EXPLORE MODE ──────────────────────────────────────────────────────────────
+function exploreSynthesis() {
+  const a = document.getElementById('expA').value;
+  const b = document.getElementById('expB').value;
+  if (!a || !b) { alert('Please select both Reactant A and Reactant B.'); return; }
+  const key = [a,b].sort().join('+');
+  const rxnData = SYNTHESIS_GRAPH[key];
+  if (!rxnData) {
+    showNoReaction();
     return;
   }
-
-  const g=gcdArr(coeffArr);
-  if(g>1){
-    banner.className='status-banner status-not-lowest';
-    const simplified=coeffArr.map(c=>c/g);
-    const species=getSpecies(rxn);
-    const eqStr=simplified.map((c,i)=>(c===1?'':c)+species[i].label).join(' ');
-    banner.innerHTML=`<strong>Balanced</strong> — but these coefficients can be simplified. Try dividing each by ${g}. The simplest balanced form uses the smallest whole numbers. (Hint: try ${eqStr})`;
-  } else {
-    banner.className='status-banner status-balanced';
-    banner.innerHTML=`<strong>Balanced and in lowest terms.</strong> Every element has the same count on both sides, and the coefficients cannot be simplified further.`;
-  }
+  loadExploreRxn(rxnData);
 }
 
-function render(){
-  const rxn=REACTIONS[currentRxn];
-  renderEq(rxn,coeffs);
-  drawMolecules(rxn,coeffs);
-  renderCountTable(rxn,coeffs);
-  renderStatus(rxn,coeffs);
+function exploreDecomp() {
+  const c = document.getElementById('expDecomp').value;
+  if (!c) { alert('Please select a compound.'); return; }
+  const rxnData = DECOMP_GRAPH[c];
+  if (!rxnData) { showNoReaction(); return; }
+  loadExploreRxn(rxnData);
 }
 
-function selectReaction(i){
-  currentRxn=i;
-  coeffs=REACTIONS[i].reactants.concat(REACTIONS[i].products).map(()=>1);
-  document.querySelectorAll('.rxn-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
-  render();
+function loadExploreRxn(rxnData) {
+  exploreState.rxn = rxnData;
+  exploreState.coeffs = rxnData.reactants.concat(rxnData.products).map(()=>1);
+  renderExplore();
 }
 
-const selector=document.getElementById('rxnSelector');
-REACTIONS.forEach((rxn,i)=>{
-  const btn=document.createElement('button');
-  btn.className='rxn-btn'+(i===0?' active':'');
-  btn.textContent=rxn.shortLabel;
-  btn.onclick=()=>selectReaction(i);
-  selector.appendChild(btn);
-});
+function showNoReaction() {
+  const vizCard = document.getElementById('exploreVizCard');
+  vizCard.innerHTML = `
+    <div class="no-react-state">
+      <div class="no-react-icon">⚗️</div>
+      <div class="no-react-title">No reaction would take place under these conditions.</div>
+      <div class="no-react-sub">Not all elements react with each other. If you are curious about why, ask your teacher or try a different combination.</div>
+    </div>`;
+  document.getElementById('exploreEqCard').innerHTML = '<div class="eq-row"><span class="eq-placeholder">No reaction — try different reactants.</span></div>';
+  document.getElementById('exploreCountBody').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:16px;font-size:13px;">No atoms to count.</td></tr>';
+  document.getElementById('exploreStatus').className = 'status-banner status-noreact';
+  document.getElementById('exploreStatus').textContent = 'No reaction would take place under these conditions.';
+  exploreState.rxn = null;
+  exploreState.coeffs = [];
+}
 
-document.getElementById('resetBtn').onclick=()=>{
-  coeffs=coeffs.map(()=>1);
-  render();
-};
+function renderExplore() {
+  if (!exploreState.rxn) return;
+  const rxn = exploreState.rxn;
+  const coeffs = exploreState.coeffs;
+  renderEq(rxn, coeffs, 'exploreEqCard', renderExplore);
+  renderViz(rxn, coeffs, 'exploreVizCard');
+  renderCountTable(rxn, coeffs, 'exploreCountBody');
+  renderStatus(rxn, coeffs, 'exploreStatus');
+}
 
-selectReaction(0);
+function exploreReset() {
+  if (!exploreState.rxn) return;
+  const rxn = exploreState.rxn;
+  exploreState.coeffs = rxn.reactants.concat(rxn.products).map(()=>1);
+  renderExplore();
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+initPractice();
 </script>
+</body>
+</html>
